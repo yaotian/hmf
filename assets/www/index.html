@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>iScroll demo: simple</title>
+
+<link rel="stylesheet"  href="lib/jquery.mobile-1.0.css" />
+<link rel="stylesheet"  href="lib/lm.css" />
+
+
+
+<script type="text/javascript" src="lib/iscroll.js"></script>
+<script type="text/javascript" src="lib/lm.js"></script>
+<script type="text/javascript" src="lib/jquery-1.6.4.js"></script>
+<script type="text/javascript" src="lib/jquery.tmpl.js"></script>
+<script type="text/javascript" src="js/site.js"></script>
+<script type="text/javascript" src="lib/jquery.mobile-1.0.js"></script>
+<script type="text/javascript" src="lib/connector.js"></script>
+
+
+<script type="text/javascript">
+
+var myScroll,
+	pullDownEl, pullDownOffset,
+	generatedCount = 0;
+	
+function pullDownAction () 
+{
+	var url = 'http://error.sinaapp.com/demo.php';
+	
+	$.post( url , {} , function( data )
+	{
+		var key = hex_md5( url );
+		
+		var ret = jQuery.parseJSON( data );
+		window.localStorage.setItem( key , data );
+		
+		$("#thelist").empty();
+		$('#thelisttpl').tmpl(ret).appendTo( "#thelist" );
+		$("#thelist").listview('refresh');
+		
+		// must add setTimeOut otherwise last item of list will not be rendered.
+		setTimeout(function () 
+		{
+			myScroll.refresh();
+		}, 0);		
+		// Remember to refresh when contents are loaded (ie: on ajax completion)
+		
+			
+	} , 'html' );
+	
+	
+	
+	
+}	
+
+function loaded() 
+{
+	pullDownEl = document.getElementById('pullDown');
+	pullDownOffset = pullDownEl.offsetHeight;
+	
+	myScroll = new iScroll('wrapper' , 
+	{
+		//useTransition: true,
+		topOffset: pullDownOffset,
+		
+		onRefresh: function () 
+		{
+			if (pullDownEl.className.match('loading')) 
+			{
+				pullDownEl.className = '';
+				pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
+			}
+		},
+		
+		onScrollMove: function () 
+		{
+			if (this.y > 5 && !pullDownEl.className.match('flip')) 
+			{
+				pullDownEl.className = 'flip';
+				pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Release to refresh...';
+				this.minScrollY = 0;
+			} 
+			else if (this.y < 5 && pullDownEl.className.match('flip')) 
+			{
+				pullDownEl.className = '';
+				pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Pull down to refresh...';
+				this.minScrollY = -pullDownOffset;
+			}
+		},
+		onScrollEnd: function () 
+		{
+			if (pullDownEl.className.match('flip')) 
+			{
+				pullDownEl.className = 'loading';
+				pullDownEl.querySelector('.pullDownLabel').innerHTML = 'Loading...';				
+				pullDownAction();	// Execute custom function (ajax call?)
+			}
+		}
+	});
+	
+	lmlist('thelist','thelisttpl', myScroll);
+}
+
+document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+
+/* * * * * * * *
+ *
+ * Use this for high compatibility (iDevice + Android)
+ *
+ */
+document.addEventListener('DOMContentLoaded', function () { setTimeout(loaded, 200); }, false);
+/*
+ * * * * * * * */
+
+
+/* * * * * * * *
+ *
+ * Use this for iDevice only
+ *
+ */
+//document.addEventListener('DOMContentLoaded', loaded, false);
+/*
+ * * * * * * * */
+
+
+/* * * * * * * *
+ *
+ * Use this if nothing else works
+ *
+ */
+//window.addEventListener('load', setTimeout(function () { loaded(); }, 200), false);
+/*
+ * * * * * * * */
+
+
+</script>
+
+<style type="text/css" media="all">
+body,ul,li {
+	padding:0;
+	margin:0;
+	border:0;
+}
+
+body {
+	font-size:12px;
+	-webkit-user-select:none;
+    -webkit-text-size-adjust:none;
+	font-family:helvetica;
+}
+
+
+
+#scroller li {
+	padding:10px 10px;
+	/*height:50px;*/
+	border-bottom:1px solid #ccc;
+	border-top:1px solid #fff;
+	background: white;
+}
+
+
+
+</style>
+</head>
+<body>
+<div class="LM-header" data-role="header" data-theme="b"> 
+	<h1>Page Title</h1> 
+</div> 
+<div class="LM-card cur" id="lmc1">
+
+
+ <fieldset data-role="controlgroup" data-type="horizontal" style="padding-left:10px" >
+
+
+ <input type="radio" name="radio-choice-1" id="radio-choice-1" value="date" checked="checked" onclick="lmtab('lmt1');" />
+ <label for="radio-choice-1">Tab1</label>
+
+ <input type="radio" name="radio-choice-1" id="radio-choice-2" value="requester" onclick="lmtab('lmt2');" />
+ <label for="radio-choice-2">Tab2</label>
+
+ <input type="radio" name="radio-choice-1" id="radio-choice-3" value="target" onclick="lmtab('lmt3');" />
+ <label for="radio-choice-3">Tab3</label>
+ 
+  
+ </fieldset>
+<div class="LM-tab cur" id="lmt1">
+
+
+
+
+<div id="wrapper" class="LM-wrapper">
+	<div id="scroller" class="LM-scroller">
+		<div id="pullDown">
+			<span class="pullDownIcon"></span><span class="pullDownLabel">Pull down to refresh...</span>
+		</div>
+		<ul id="thelist" data-role="listview" >
+		</ul>
+		<div id="pullUp">
+			<center><span class="pullUpLabel">More</span></center>
+		</div>
+	</div>
+</div>
+
+</div> <!-- tab end -->
+
+
+
+<div class="LM-tab cur" id="lmt2">
+tab2
+</div>
+
+<div class="LM-tab cur" id="lmt3">
+tab3
+</div>
+
+</div> <!-- card end -->
+
+
+
+<div class="LM-card" id="lmc2">
+<div class="ui-grid-a">
+	<div class="ui-block-a"><strong>I'm Block A</strong> and text inside will wrap</div>
+	<div class="ui-block-b"><strong>I'm Block B</strong> and text inside will wrap</div>
+</div><!-- /grid-a -->
+</div>
+
+<div class="LM-card" id="lmc3">
+card3
+</div>
+
+
+
+<div id="footer" class="LM-footer" data-theme="a" data-role="footer">
+<div data-role="navbar">
+		<ul>
+			<li><a href="#" onclick="lmcard('lmc1');lmlist('thelist','thelisttpl', myScroll );" data-icon="check" class="ui-btn-active">One</a></li>
+			<li><a href="#" onclick="lmcard('lmc2');" data-icon="check">Two</a></li>
+			<li><a href="#" onclick="lmcard('lmc3');" data-icon="check">Tree</a></li>
+			
+		</ul>
+	</div><!-- /navbar -->
+</div>
+
+<script id="thelisttpl" type="text/html">
+    <li>
+    <div class="weibocontent">${title}</div>
+    
+    </li>
+</script>
+
+
+
+</body>
+</html>

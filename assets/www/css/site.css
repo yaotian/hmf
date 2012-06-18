@@ -1,0 +1,26 @@
+table{
+	border-collapse:collapse;
+	font-size: 12px;
+}
+
+th, td{
+	border: none;
+}
+
+th{
+	background-color: #000;
+	color:#fff;
+}
+
+tr:nth-of-type(even){
+	background-color: #F3F3F3;
+}
+
+tr:nth-of-type(odd){
+	background-color:#ddd;
+}
+
+table td:nth-child(n+1){
+	text-align:center;
+}
+
